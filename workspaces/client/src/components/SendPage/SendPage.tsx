@@ -1,22 +1,20 @@
 import * as React from 'react';
+import { useEffect, useState } from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
-import { AppBar, TextField, Toolbar } from '@mui/material';
+import { TextField } from '@mui/material';
 import Button from '@mui/material/Button';
 import { messaging } from '../../firebase';
 import { useToken } from 'react-firebase-hooks/messaging';
-import { useEffect, useState } from 'react';
 import Header from './Header';
 import { onMessage } from 'firebase/messaging';
 import config from '../../config/config';
 import axios from 'axios';
 
 export default function SendPage({ user, signOut }: any) {
-    const [token, loading, error] = useToken(messaging, config.vapidKey);
+    const [token] = useToken(messaging, config.vapidKey);
     const [messages, setMessages] = useState<Array<{ id: string; from: string; title: string; message: string }>>([]);
-
-    console.log('error?', error);
 
     useEffect(() => {
         if (token) {
@@ -46,10 +44,14 @@ export default function SendPage({ user, signOut }: any) {
         };
     }, [messages]);
 
-    const handleSubmit = async (e: any) => {
-        e.preventDefault();
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget);
 
-        const response = await axios.post(`${config.serverUrl}/send`, { token, what: 'send' });
+        const title = data.get('title');
+        const body = data.get('body');
+
+        const response = await axios.post(`${config.serverUrl}/send`, { token, title, body });
         console.log('response?', response?.data);
     };
 
@@ -67,7 +69,8 @@ export default function SendPage({ user, signOut }: any) {
 
             <Container component="main" sx={{ mt: 8, mb: 2 }} maxWidth="sm">
                 <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 1 }}>
-                    <TextField fullWidth sx={{ height: 150 }} placeholder={'type your message here...'} />
+                    <TextField name="title" fullWidth sx={{ height: 50 }} placeholder={'type your title here...'} />
+                    <TextField name="body" fullWidth sx={{ height: 150 }} placeholder={'type your body here...'} />
 
                     <Button variant={'contained'} type={'submit'}>
                         Send!
