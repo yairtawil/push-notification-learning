@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "push-notifications-learn-a54e4",
     "public": "build",
     "ignore": [
       "firebase.json",
